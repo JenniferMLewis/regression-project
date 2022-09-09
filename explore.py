@@ -26,12 +26,14 @@ def col_range(df):
 
 def plot_variable_pairs(df, num = ['area', 'tax_value']):
     '''
-    Takes in DF (Train Please,) and plots out the variable pairs heatmap and pairplot. 
-    Preset Numerical Data is area, and tax_value, but a new list can be fed in.
+    Takes in DF (Train Please,) and numerical column pair 
+    [Preset Numerical Data is area, and tax_value, but a new list can be fed in.]
+    Returns the plotted out variable pairs heatmap and numerical pairplot.
     '''
     df_corr = df.corr()
     plt.figure(figsize=(12,8))
     sns.heatmap(df_corr, cmap='Purples', annot = True, mask= np.triu(df_corr), linewidth=.5)
+    plt.title("Correlations between variables")
     plt.show()
     
     sns.pairplot(df[num].sample(1_000), corner=True, kind='reg', plot_kws={'line_kws':{'color':'red'}})
@@ -94,6 +96,12 @@ def explore_cat(df, cat = ['bedrooms', 'bathrooms'], target = 'tax_value'):
         print(' ')
         print('======================================')
         print(' ')
+    print("-=== tax_value ===-")
+    print(' ')
+    print("Tax Value Average:")
+    print(f"$ {round(df.tax_value.sum()/len(df.tax_value), 2)}")
+    print("-------------")
+
 
 def explore_num(df, num = ['area', 'tax_value']):
     '''
@@ -101,12 +109,14 @@ def explore_num(df, num = ['area', 'tax_value']):
     numerical columns to explore (default area, tax_value).
     '''
     for col in num:
-        sns.histplot(x=col, data=df)
+        sns.histplot(data=df, x=col, hue='bathrooms')
         plt.show()  
 
-        sns.scatterplot(data=df, x='col', y='tax_value')
+    cols = [col for col in num if col not in ['tax_value']]
+    for col in cols:
+        sns.scatterplot(data=df, x=col, y='tax_value', hue='bathrooms')
         plt.show()
-    
+
     
 # ============== Feature Selection ====================
 # Do not rely solely on these.
