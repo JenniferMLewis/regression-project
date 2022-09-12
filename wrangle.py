@@ -1,3 +1,4 @@
+from tkinter.tix import COLUMN
 import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
@@ -143,7 +144,8 @@ def prepare_zillow_mvp(df):
 
     hist_plot(df)
     box_plot(df)
-
+    df = df.drop(columns= "date")
+    
     train_validate, test = train_test_split(df, test_size=.2, random_state=123)
     train, validate = train_test_split(train_validate, test_size=.3, random_state=123)
 

@@ -6,6 +6,7 @@ import seaborn as sns
 from scipy import stats
 from sklearn.feature_selection import SelectKBest, RFE, f_regression, SequentialFeatureSelector
 from sklearn.linear_model import LinearRegression
+from sklearn.metrics import mean_squared_error
 
 
 # =================== GENERAL ======================
@@ -154,3 +155,42 @@ def select_sfs(X_train, y_train, k_features):
     sfs.fit(X_train, y_train)
     
     print(X_train.columns[sfs.support_].tolist())
+
+def select_best(X_train, y_train, k_features):
+    '''
+    Takes in X_train, y_train, and the number of features to select.
+    Runs select_kbest, select_rfe, and select sfs functions to find the different bests.
+    Returns bests.
+    '''
+    print("KBest:")
+    print(select_kbest(X_train, y_train, k_features))
+    print(" ")
+    print("RFE:")
+    print(select_rfe(X_train, y_train, k_features))
+    print(" ")
+    print("SFS:")
+    print(select_sfs(X_train, y_train, k_features))
+
+
+# =============== Modeling ===================
+
+def get_rmse(y_train, target):
+    y_train['baseline_mean'] = y_train[target].mean()
+    y_train['baseline_median'] = y_train[target].median()
+
+    # scores:
+    rmse_mean = mean_squared_error(y_train.tax_value,
+                                y_train['baseline_mean'], squared=False)
+    rmse_med = mean_squared_error(y_train.tax_value,
+                                y_train['baseline_median'], squared=False)
+
+    print("RMSE Mean:")
+    print(rmse_mean)
+    print("----------------")
+    print("RMSE Median:")
+    print(rmse_med)
+    print("----------------")
+    if rmse_mean < rmse_med:
+        print(f"RMSE Mean is lower so we'll use that : {rmse_mean}")
+    elif rmse_med < rmse_mean:
+        print(f"RMSE Median is lower so we'll use that : {rmse_med}")
