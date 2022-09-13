@@ -5,8 +5,9 @@ import numpy as np
 import os
 import seaborn as sns
 from sklearn.model_selection import train_test_split
-
+from sklearn.preprocessing import MinMaxScaler, StandardScaler, RobustScaler, QuantileTransformer
 from sklearn.impute import SimpleImputer
+
 from env import user, password, host
 
 
@@ -254,49 +255,30 @@ def wrangle_zillow():
     return train, validate, test
 
 
-# ============ FML =============
+# ============ MISC =============
 
-# When I get really strange errors, trouble shooting starts here.
+def df_split(train, validate, test, target="tax_value"):
+    '''
+    Takes in train, validate, and test df, as well as target (default: "tax_value")
+    Splits them into X, y using target.
+    Returns X, y of train, validate, and test.
+    y sets returned as a proper DataFrame.
+    '''
+    X_train, y_train = train.drop(columns=target), train[target]
+    X_validate, y_validate = validate.drop(columns=target), validate[target]
+    X_test, y_test = test.drop(columns=target), test[target]
+    y_train = pd.DataFrame(y_train)
+    y_validate = pd.DataFrame(y_validate)
+    y_test = pd.DataFrame(y_test)
+    return X_train, y_train, X_validate, y_validate, X_test, y_test
 
-# def get_zillow_test():
-#     '''
-#     Returns the zillow 2017 dataset, checks local disk for zillow_2017.csv, if present loads it,
-#     otherwise it pulls the bedroomcnt, bathroomcnt, calculatedfinishedsquarefeet, 
-#     taxvaluedollarcnt, yearbuilt, taxamount and, fips columns from the SQL.
-#     Dropping all properties with 0 bedrooms (it's not really a house if you can't sleep in it.)
-#     '''
-#     filename = 'zillow_2017.csv'
 
-#     if os.path.isfile(filename):
-#         df = pd.read_csv(filename)
-#         df = df.rename(columns = {'bedroomcnt':'bedrooms', 
-#                       'bathroomcnt':'bathrooms', 
-#                       'calculatedfinishedsquarefeet':'area',
-#                       'taxvaluedollarcnt':'tax_value', 
-#                       'yearbuilt':'year_built',
-#                       'taxamount':'tax_amount'})
-#         df = df[df.bedrooms!=0]
-#         df = df.drop(columns="Unnamed: 0")
-#         return df
-#     else:
-#         df = pd.read_sql('''SELECT bedroomcnt, 
-#         bathroomcnt, 
-#         calculatedfinishedsquarefeet, 
-#         taxvaluedollarcnt, 
-#         yearbuilt, 
-#         taxamount, 
-#         fips 
-#         FROM properties_2017
-#         JOIN propertylandusetype
-#         USING(propertylandusetypeid)
-#         WHERE propertylandusedesc = "Single Family Residential";
-#         ''', get_url('zillow'))
-#         df.to_csv(filename)
-#         df = df.rename(columns = {'bedroomcnt':'bedrooms', 
-#                       'bathroomcnt':'bathrooms', 
-#                       'calculatedfinishedsquarefeet':'area',
-#                       'taxvaluedollarcnt':'tax_value', 
-#                       'yearbuilt':'year_built',
-#                       'taxamount':'tax_amount'})
-#         df = df[df.bedrooms!=0]
-#         return df
+def scale(df, columns_for_scaling = ['bedrooms', 'bathrooms', 'tax_value'], scaler = MinMaxScaler()):
+    '''
+    Takes in df, columns to be scaled (default: bedrooms, bathrooms, tax_value), 
+    and scaler (default: MinMaxScaler(); others can be used ie: StandardScaler(), RobustScaler(), QuantileTransformer())
+    returns a copy of the df, scaled.
+    '''
+    scaled_df = df.copy()
+    scaled_df[columns_for_scaling] = scaler.fit_transform(df[columns_for_scaling])
+    return scaled_df
